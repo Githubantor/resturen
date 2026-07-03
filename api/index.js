@@ -7,17 +7,23 @@ import mongoose from "mongoose";
 import reservationRoutes from "../server/routes/reservations.js";
 import contactRoutes from "../server/routes/contact.js";
 import menuRoutes from "../server/routes/menu.js";
-import connectDB, { dbReady } from "../server/config/cluster.js";
+import { ensureDB, dbReady } from "../server/config/cluster.js";
 import Reservation from "../server/models/Reservation.js";
 import Contact from "../server/models/Contact.js";
 import MenuItem from "../server/models/MenuItem.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
+dotenv.config({ path: "server/.env" });
 
 const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
+
+app.use("/api", async (req, res, next) => {
+  await ensureDB();
+  next();
+});
 
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/contact", contactRoutes);
@@ -41,6 +47,6 @@ app.get("/api/data", async (req, res) => {
   }
 });
 
-connectDB();
+ensureDB();
 
 export default app;
