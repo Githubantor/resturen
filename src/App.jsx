@@ -224,6 +224,8 @@ export default function App() {
 
       <ReservationSection />
 
+      <ContactSection />
+
       <FooterSection />
     </div>
   )
@@ -439,6 +441,41 @@ function TestimonialsSection() {
 }
 
 function ReservationSection() {
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", date: "", guests: "", time: "", message: "" })
+  const [status, setStatus] = useState("idle")
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setStatus("loading")
+    try {
+      const res = await fetch("/api/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `${form.firstName} ${form.lastName}`.trim(),
+          email: form.email,
+          phone: form.phone,
+          date: form.date,
+          time: form.time,
+          guests: Number(form.guests),
+          message: form.message,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setStatus("success")
+        setForm({ firstName: "", lastName: "", email: "", phone: "", date: "", guests: "", time: "", message: "" })
+      } else {
+        setStatus("error")
+      }
+    } catch {
+      setStatus("error")
+    }
+    setTimeout(() => setStatus("idle"), 3000)
+  }
+
   return (
     <section id="reservations" className="relative py-32 px-6">
       <div className="max-w-7xl mx-auto">
@@ -472,32 +509,97 @@ function ReservationSection() {
           </div>
 
           <div className="reveal" data-delay="0.2">
-            <form className="bg-[#1A1A1A] border border-white/5 rounded-3xl p-8 md:p-10 space-y-6 glow" onSubmit={e => e.preventDefault()}>
+            <form onSubmit={handleSubmit} className="bg-[#1A1A1A] border border-white/5 rounded-3xl p-8 md:p-10 space-y-6 glow">
               <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="First Name" className="input-field rounded-xl px-5 py-3.5 text-sm" />
-                <input type="text" placeholder="Last Name" className="input-field rounded-xl px-5 py-3.5 text-sm" />
+                <input name="firstName" value={form.firstName} onChange={handleChange} type="text" placeholder="First Name" required className="input-field rounded-xl px-5 py-3.5 text-sm" />
+                <input name="lastName" value={form.lastName} onChange={handleChange} type="text" placeholder="Last Name" required className="input-field rounded-xl px-5 py-3.5 text-sm" />
               </div>
-              <input type="email" placeholder="Email Address" className="input-field rounded-xl px-5 py-3.5 text-sm w-full" />
               <div className="grid grid-cols-2 gap-4">
-                <input type="date" className="input-field rounded-xl px-5 py-3.5 text-sm" />
-                <select className="input-field rounded-xl px-5 py-3.5 text-sm">
-                  <option value="" disabled selected className="bg-[#1A1A1A]">Guests</option>
-                  {[1,2,3,4,5,6].map(n => <option key={n} value={n} className="bg-[#1A1A1A]">{n} {n === 1 ? 'Guest' : 'Guests'}</option>)}
+                <input name="email" value={form.email} onChange={handleChange} type="email" placeholder="Email Address" required className="input-field rounded-xl px-5 py-3.5 text-sm" />
+                <input name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="Phone Number" required className="input-field rounded-xl px-5 py-3.5 text-sm" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <input name="date" value={form.date} onChange={handleChange} type="date" required className="input-field rounded-xl px-5 py-3.5 text-sm" />
+                <select name="guests" value={form.guests} onChange={handleChange} required className="input-field rounded-xl px-5 py-3.5 text-sm">
+                  <option value="" disabled>Guests</option>
+                  {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>)}
                 </select>
               </div>
-              <select className="input-field rounded-xl px-5 py-3.5 text-sm w-full">
-                <option value="" disabled selected className="bg-[#1A1A1A]">Time Preference</option>
-                <option className="bg-[#1A1A1A]">5:30 PM</option>
-                <option className="bg-[#1A1A1A]">7:00 PM</option>
-                <option className="bg-[#1A1A1A]">8:30 PM</option>
-                <option className="bg-[#1A1A1A]">10:00 PM</option>
+              <select name="time" value={form.time} onChange={handleChange} required className="input-field rounded-xl px-5 py-3.5 text-sm w-full">
+                <option value="" disabled>Time Preference</option>
+                <option value="5:30 PM">5:30 PM</option>
+                <option value="7:00 PM">7:00 PM</option>
+                <option value="8:30 PM">8:30 PM</option>
+                <option value="10:00 PM">10:00 PM</option>
               </select>
-              <textarea placeholder="Special Requests" rows={3} className="input-field rounded-xl px-5 py-3.5 text-sm w-full resize-none" />
-              <button type="submit" className="btn-gold w-full py-4 rounded-xl text-sm font-semibold uppercase tracking-widest text-[#0A0A0A]">
-                Confirm Reservation
+              <textarea name="message" value={form.message} onChange={handleChange} placeholder="Special Requests" rows={3} className="input-field rounded-xl px-5 py-3.5 text-sm w-full resize-none" />
+              <button type="submit" disabled={status === "loading"} className="btn-gold w-full py-4 rounded-xl text-sm font-semibold uppercase tracking-widest text-[#0A0A0A] disabled:opacity-50">
+                {status === "loading" ? "Submitting..." : status === "success" ? "Confirmed!" : status === "error" ? "Failed — Try Again" : "Confirm Reservation"}
               </button>
             </form>
           </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ContactSection() {
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" })
+  const [status, setStatus] = useState("idle")
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setStatus("loading")
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setStatus("success")
+        setForm({ name: "", email: "", subject: "", message: "" })
+      } else {
+        setStatus("error")
+      }
+    } catch {
+      setStatus("error")
+    }
+    setTimeout(() => setStatus("idle"), 3000)
+  }
+
+  return (
+    <section id="contact" className="relative py-32 px-6 overflow-hidden">
+      <div className="absolute inset-0">
+        <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920&q=80" alt="" className="w-full h-full object-cover opacity-5" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/95 to-[#0A0A0A]" />
+      </div>
+      <div className="relative z-10 max-w-4xl mx-auto">
+        <div className="text-center mb-16">
+          <div className="reveal" data-delay="0">
+            <span className="text-gold tracking-[0.3em] text-sm uppercase">Get in Touch</span>
+          </div>
+          <h2 className="reveal text-4xl md:text-6xl font-[Playfair_Display] font-bold mt-4" data-delay="0.1">
+            <span className="gold-text">Contact</span> Us
+          </h2>
+          <div className="animate-line w-16 h-0.5 bg-gold mx-auto mt-6" />
+        </div>
+        <div className="reveal" data-delay="0.2">
+          <form onSubmit={handleSubmit} className="bg-[#1A1A1A] border border-white/5 rounded-3xl p-8 md:p-10 space-y-6 glow max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 gap-4">
+              <input name="name" value={form.name} onChange={handleChange} type="text" placeholder="Your Name" required className="input-field rounded-xl px-5 py-3.5 text-sm" />
+              <input name="email" value={form.email} onChange={handleChange} type="email" placeholder="Your Email" required className="input-field rounded-xl px-5 py-3.5 text-sm" />
+            </div>
+            <input name="subject" value={form.subject} onChange={handleChange} type="text" placeholder="Subject" required className="input-field rounded-xl px-5 py-3.5 text-sm w-full" />
+            <textarea name="message" value={form.message} onChange={handleChange} placeholder="Your Message" rows={5} required className="input-field rounded-xl px-5 py-3.5 text-sm w-full resize-none" />
+            <button type="submit" disabled={status === "loading"} className="btn-gold w-full py-4 rounded-xl text-sm font-semibold uppercase tracking-widest text-[#0A0A0A] disabled:opacity-50">
+              {status === "loading" ? "Sending..." : status === "success" ? "Sent!" : status === "error" ? "Failed — Try Again" : "Send Message"}
+            </button>
+          </form>
         </div>
       </div>
     </section>
