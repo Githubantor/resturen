@@ -5,7 +5,7 @@ import { TextPlugin } from 'gsap/TextPlugin'
 
 gsap.registerPlugin(ScrollTrigger, TextPlugin)
 
-const navLinks = ['Home', 'About', 'Menu', 'Reservations', 'Contact']
+const navLinks = ['Home', 'About', 'Menu', 'Delivery', 'Reservations', 'Contact']
 
 const menuItems = [
   { name: 'Wagyu Tartare', desc: 'Hand-chopped Japanese wagyu with quail egg & truffle', price: '$34', delay: 0, src: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=80' },
@@ -219,6 +219,8 @@ export default function App() {
       <StatsSection />
 
       <MenuSection />
+
+      <DeliveryOrderSection />
 
       <TestimonialsSection />
 
@@ -537,6 +539,176 @@ function ReservationSection() {
                 {status === "loading" ? "Submitting..." : status === "success" ? "Confirmed!" : status === "error" ? "Failed — Try Again" : "Confirm Reservation"}
               </button>
             </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const deliveryMenu = [
+  { category: "Starters", items: [
+    { name: "Truffle Arancini", desc: "Crispy risotto balls with truffle oil, mozzarella, and parmesan", price: 16 },
+    { name: "Seared Scallops", desc: "Pan-seared scallops with cauliflower puree and caviar", price: 22 },
+    { name: "Beef Carpaccio", desc: "Thinly sliced prime beef with arugula, parmesan, and balsamic glaze", price: 19 },
+    { name: "Lobster Bisque", desc: "Creamy lobster soup with cognac and herb croutons", price: 18 },
+  ]},
+  { category: "Main Courses", items: [
+    { name: "Wagyu Steak", desc: "8oz A5 wagyu with truffle mashed potatoes and asparagus", price: 68 },
+    { name: "Lamb Rack", desc: "Herb-crusted lamb rack with rosemary jus and roasted vegetables", price: 42 },
+    { name: "Pan-Seared Salmon", desc: "Atlantic salmon with lemon butter sauce and seasonal greens", price: 34 },
+    { name: "Mushroom Risotto", desc: "Wild mushroom risotto with truffle oil and aged parmesan", price: 28 },
+  ]},
+  { category: "Desserts", items: [
+    { name: "Dark Chocolate Soufflé", desc: "Rich dark chocolate soufflé with vanilla bean ice cream", price: 18 },
+    { name: "Crème Brûlée", desc: "Classic vanilla crème brûlée with caramelized sugar top", price: 14 },
+    { name: "Tiramisu", desc: "Italian mascarpone tiramisu with espresso and cocoa", price: 16 },
+    { name: "Cheesecake", desc: "New York style cheesecake with berry compote", price: 15 },
+  ]},
+  { category: "Cocktails", items: [
+    { name: "Signature Gold", desc: "Champagne, gold liqueur, citrus, and edible gold flakes", price: 22 },
+    { name: "Smoked Old Fashioned", desc: "Bourbon, smoked cherrywood, bitters, and orange peel", price: 20 },
+    { name: "Espresso Martini", desc: "Vodka, espresso, coffee liqueur, and vanilla syrup", price: 18 },
+    { name: "Berry Spritz", desc: "Aperol, prosecco, mixed berries, and mint", price: 16 },
+  ]},
+]
+
+function DeliveryOrderSection() {
+  const [cart, setCart] = useState({})
+  const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", instructions: "" })
+  const [status, setStatus] = useState("idle")
+
+  const addItem = (item) => setCart({ ...cart, [item.name]: { ...item, quantity: (cart[item.name]?.quantity || 0) + 1 } })
+  const removeItem = (name) => {
+    const next = { ...cart }
+    if (next[name].quantity <= 1) delete next[name]
+    else next[name] = { ...next[name], quantity: next[name].quantity - 1 }
+    setCart(next)
+  }
+
+  const cartItems = Object.values(cart)
+  const total = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0)
+  const itemCount = cartItems.reduce((sum, i) => sum + i.quantity, 0)
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!itemCount) return
+    setStatus("loading")
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cartItems.map(i => ({ name: i.name, price: i.price, quantity: i.quantity })),
+          total,
+          customer: form,
+          instructions: form.instructions,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setStatus("success")
+        setCart({})
+        setForm({ name: "", email: "", phone: "", address: "", instructions: "" })
+      } else {
+        setStatus("error")
+      }
+    } catch {
+      setStatus("error")
+    }
+    setTimeout(() => setStatus("idle"), 3000)
+  }
+
+  return (
+    <section id="delivery" className="relative py-32 px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <div className="reveal" data-delay="0">
+            <span className="text-gold tracking-[0.3em] text-sm uppercase">Order Online</span>
+          </div>
+          <h2 className="reveal text-4xl md:text-6xl font-[Playfair_Display] font-bold mt-4 mb-6" data-delay="0.1">
+            Home <span className="gold-text">Delivery</span>
+          </h2>
+          <div className="animate-line w-16 h-0.5 bg-gold mx-auto" />
+          <p className="reveal text-[#FAF6F0]/50 max-w-xl mx-auto mt-6" data-delay="0.2">
+            Enjoy Sweettable from the comfort of your home. Select your items and we'll deliver.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-10">
+          <div className="lg:col-span-2 space-y-12">
+            {deliveryMenu.map((cat) => (
+              <div key={cat.category} className="reveal" data-delay="0">
+                <h3 className="text-xl font-[Playfair_Display] font-bold gold-text mb-6 uppercase tracking-wider">{cat.category}</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {cat.items.map((item) => (
+                    <div key={item.name} className="flex items-center justify-between bg-[#1A1A1A] border border-white/5 rounded-xl p-4 hover:border-gold/30 transition-colors">
+                      <div className="flex-1 min-w-0 mr-3">
+                        <p className="font-semibold text-sm truncate">{item.name}</p>
+                        <p className="text-[#FAF6F0]/40 text-xs truncate mt-0.5">{item.desc}</p>
+                        <p className="text-gold text-sm font-bold mt-1">${item.price}</p>
+                      </div>
+                      <button onClick={() => addItem(item)} className="btn-gold shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[#0A0A0A] font-bold text-lg hover:scale-110 transition-transform">
+                        +
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="reveal" data-delay="0.2">
+            <div className="bg-[#1A1A1A] border border-white/5 rounded-3xl p-6 md:p-8 glow sticky top-28">
+              <h3 className="text-lg font-bold mb-4 flex items-center justify-between">
+                Your Order
+                {itemCount > 0 && <span className="text-gold text-sm font-normal">{itemCount} item{itemCount !== 1 ? "s" : ""}</span>}
+              </h3>
+
+              {itemCount === 0 ? (
+                <p className="text-[#FAF6F0]/40 text-sm py-8 text-center">Select items from the menu</p>
+              ) : (
+                <div className="space-y-3 mb-6 max-h-64 overflow-y-auto pr-1">
+                  {cartItems.map((item) => (
+                    <div key={item.name} className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0 mr-2">
+                        <p className="text-sm truncate">{item.name}</p>
+                        <p className="text-[#FAF6F0]/40 text-xs">${item.price} × {item.quantity}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => removeItem(item.name)} className="w-6 h-6 rounded-full border border-white/10 flex items-center justify-center text-xs text-[#FAF6F0]/50 hover:text-gold hover:border-gold/50 transition-colors">−</button>
+                        <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
+                        <button onClick={() => addItem(item)} className="w-6 h-6 rounded-full border border-white/10 flex items-center justify-center text-xs text-[#FAF6F0]/50 hover:text-gold hover:border-gold/50 transition-colors">+</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {itemCount > 0 && (
+                <>
+                  <div className="flex justify-between items-center py-3 border-t border-white/5 mb-4">
+                    <span className="text-sm">Total</span>
+                    <span className="text-lg font-bold gold-text">${total}</span>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-3">
+                    <input name="name" value={form.name} onChange={handleChange} type="text" placeholder="Your Name" required className="input-field rounded-xl px-4 py-3 text-sm w-full" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input name="email" value={form.email} onChange={handleChange} type="email" placeholder="Email" required className="input-field rounded-xl px-4 py-3 text-sm w-full" />
+                      <input name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="Phone" required className="input-field rounded-xl px-4 py-3 text-sm w-full" />
+                    </div>
+                    <input name="address" value={form.address} onChange={handleChange} type="text" placeholder="Delivery Address" required className="input-field rounded-xl px-4 py-3 text-sm w-full" />
+                    <textarea name="instructions" value={form.instructions} onChange={handleChange} placeholder="Delivery Instructions (optional)" rows={2} className="input-field rounded-xl px-4 py-3 text-sm w-full resize-none" />
+                    <button type="submit" disabled={status === "loading"} className="btn-gold w-full py-3.5 rounded-xl text-sm font-semibold uppercase tracking-widest text-[#0A0A0A] disabled:opacity-50">
+                      {status === "loading" ? "Placing Order..." : status === "success" ? "Order Placed!" : status === "error" ? "Failed — Try Again" : `Place Order — $${total}`}
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
