@@ -1,7 +1,7 @@
 import { Router } from "express";
 import mongoose from "mongoose";
 import MenuItem from "../models/MenuItem.js";
-import { dbReady } from "../config/db.js";
+import { dbReady } from "../config/cluster.js";
 
 const router = Router();
 

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import mongoose from "mongoose";
 import Contact from "../models/Contact.js";
-import { dbReady } from "../config/db.js";
+import { dbReady } from "../config/cluster.js";
 
 const router = Router();
 const fallback = [];

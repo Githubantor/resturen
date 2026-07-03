@@ -1,7 +1,7 @@
 import { Router } from "express";
 import mongoose from "mongoose";
 import Reservation from "../models/Reservation.js";
-import { dbReady } from "../config/db.js";
+import { dbReady } from "../config/cluster.js";
 
 const router = Router();
 const fallback = [];
