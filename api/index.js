@@ -33,12 +33,7 @@ app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
 
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "Sweettable API is running",
-    mongodb: dbReady(),
-    error: getLastError(),
-  });
+  res.json({ status: "ok", message: "Sweettable API is running", mongodb: dbReady() });
 });
 
 app.get("/api/data", async (req, res) => {
