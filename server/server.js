@@ -6,6 +6,7 @@ import reservationRoutes from "./routes/reservations.js";
 import contactRoutes from "./routes/contact.js";
 import menuRoutes from "./routes/menu.js";
 import orderRoutes from "./routes/orders.js";
+import orderRoutes from "./routes/orders.js";
 
 dotenv.config({ path: "server/.env" });
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/menu", menuRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/orders", orderRoutes);
 
 app.get("/api/health", (req, res) => {

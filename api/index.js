@@ -8,7 +8,7 @@ import reservationRoutes from "../server/routes/reservations.js";
 import contactRoutes from "../server/routes/contact.js";
 import menuRoutes from "../server/routes/menu.js";
 import orderRoutes from "../server/routes/orders.js";
-import { ensureDB, dbReady } from "../server/config/cluster.js";
+import { ensureDB, dbReady, getLastError } from "../server/config/cluster.js";
 import Reservation from "../server/models/Reservation.js";
 import Contact from "../server/models/Contact.js";
 import MenuItem from "../server/models/MenuItem.js";
@@ -37,10 +37,7 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     message: "Sweettable API is running",
     mongodb: dbReady(),
-    env: {
-      mongodb_uri_set: !!process.env.MONGODB_URI,
-      cwd: process.cwd(),
-    },
+    error: getLastError(),
   });
 });
 
