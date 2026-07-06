@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import reservationRoutes from "../server/routes/reservations.js";
@@ -15,8 +16,19 @@ import MenuItem from "../server/models/MenuItem.js";
 import Order from "../server/models/Order.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, "../server/.env") });
-dotenv.config({ path: "server/.env" });
+const cwd = process.cwd();
+
+const envPaths = [
+  path.resolve(__dirname, "../server/.env"),
+  path.resolve(cwd, "server/.env"),
+  path.resolve(cwd, ".env"),
+];
+for (const envPath of envPaths) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    break;
+  }
+}
 
 const app = express();
 app.use(cors({ origin: "*" }));
